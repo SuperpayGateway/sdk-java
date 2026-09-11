@@ -46,5 +46,11 @@ public class test {
 
 		HashMap<String, String> balanceResult = gatewaySdk.balance();
 		System.out.println(balanceResult);
+
+		HashMap<String, String> payinPaymentCodes = gatewaySdk.getPayinPaymentCodes();
+		System.out.println(payinPaymentCodes);
+
+		HashMap<String, String> payoutPaymentCodes = gatewaySdk.getPayoutPaymentCodes();
+		System.out.println(payoutPaymentCodes);
 	}
 }

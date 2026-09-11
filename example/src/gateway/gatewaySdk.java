@@ -258,6 +258,56 @@ public  class gatewaySdk {
     }
 
     /**
+     * Get active pay-in payment codes
+     * @return code,message,data
+     */
+    public static HashMap<String, String> getPayinPaymentCodes() {
+        return getPaymentCodes("getPayinPaymentCodes");
+    }
+
+    /**
+     * Get active payout payment codes
+     * @return code,message,data
+     */
+    public static HashMap<String, String> getPayoutPaymentCodes() {
+        return getPaymentCodes("getPayoutPaymentCodes");
+    }
+
+    private static HashMap<String, String> getPaymentCodes(String endpoint) {
+        HashMap<String, String> result = new HashMap<String, String>();
+        try
+        {
+            String token = getToken();
+            if (token.isEmpty()) return result;
+            String requestUrl = "gateway/" + gatewayCfg.VERSION_NO + "/" + endpoint;
+            HashMap<String, String> cnst = generateConstant(requestUrl);
+            String bodyJson = "{}";
+            String base64ReqBody = sortedAfterToBased64(bodyJson);
+            String signature = createSignature(cnst, base64ReqBody);
+            String encryptData = symEncrypt(base64ReqBody);
+            String json = "{\"data\":\"" + encryptData + "\"}";
+            String[] keys = new String[] { "code", "message", "encryptedData" };
+            HashMap<String, String> dict = post(requestUrl, token, signature, json, cnst.get("nonceStr"), cnst.get("timestamp"), keys);
+            if (!dict.get("code").isEmpty() && dict.get("code").equals("1") && !dict.get("encryptedData").isEmpty())
+            {
+                result.put("code", "1");
+                result.put("message", "");
+                result.put("data", symDecrypt(dict.get("encryptedData")));
+                return result;
+            }
+            result.put("code", "0");
+            result.put("message", dict.get("message"));
+            return result;
+        }
+        catch (Exception e)
+        {
+            result.put("code", "0");
+            result.put("message", e.getMessage());
+            return result;
+        }
+    }
+
+    /**
      * get server token
      * @return token
      * @throws InvalidKeySpecException
